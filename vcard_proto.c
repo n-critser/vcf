@@ -8,6 +8,9 @@ typedef struct Cttree Cttree;
 struct Cttree{
     char *name;
     char *fname;
+    char *tel;
+    char *email;
+    char *addr;
     Cttree *left;
     Cttree *right;
 };
@@ -61,15 +64,17 @@ void printcttree(Cttree *p, void *arg)
 {
     char *fmt;
     fmt = (char*) arg;
-    printf(fmt , p->name , p->fname);
+    printf(fmt , p->fname, p->name , p->email,p->tel);
 }
 
-Cttree *newitem(char *name, char *fname)
+Cttree *newitem(char *name, char *fname, char* email, char * tel)
 {
     Cttree *newp;
     newp = (Cttree *)emalloc(sizeof(Cttree));
     newp->name=name;
     newp->fname=fname;
+    newp->email=email;
+    newp->tel = tel;
     /* printf ("new name: %s\n",name); */
     /* printf(" new fname: %s\n",fname); */
     newp->left=NULL;
@@ -80,7 +85,7 @@ Cttree *newitem(char *name, char *fname)
 
 Cttree* vcfgetcontacts(FILE *f, int * count);
 int   vcfgetncontact(int n);
-char * strip(char* tag, char * prefix);
+char * strip(char* tag, char * prefix, int * found);
 char * unnew(char *ln);
 char **cont=NULL;
 int maxline = 1;
@@ -89,12 +94,14 @@ Cttree* vcfgetcontacts(FILE *f, int * count)
 {
     Cttree * cttree = NULL;
     char *p, **newct;
-    int ncon,state,nline;
+    int ncon,state,nline,found;
     cont = (char**) malloc(maxline * sizeof(cont[0]));
     if (cont == NULL){
 	return cttree;
     }
-    nline= ncon = state = 0;
+    nline= ncon = state = found =  0;
+    int fnline ,nameline,telline,emailline;
+    fnline = nameline=telline = emailline = 0;
     while (fgets (buf, sizeof(buf), f)!=NULL) {
 	/* remove the \n added by fgets */
 	buf[strlen(buf)-1]='\0';
@@ -111,12 +118,33 @@ Cttree* vcfgetcontacts(FILE *f, int * count)
 	    /*printf ("buf: '%s'\n", buf); */
 	} else if(strncmp(buf,"END:VCARD",8)!=0 && state ==1){
 	    /* contact line handling  */
-	    cont[nline]=strdup(strip(buf,"FN:"));
+	    if ((cont[nline]=strdup(strip(buf,"FN:", &found))) && found){
+		fnline=nline;
+		/* printf ("fnline:%d\n  - fn:%s\n",fnline,cont[fnline]); */
+	    } else if((cont[nline]=strdup(strip(buf,
+						"N:", &found))) && found){
+		nameline=nline;
+	    }else if((cont[nline]=strdup(strip(buf,
+					       "EMAIL", &found))) && found){
+		emailline=nline;
+	    }else if((cont[nline]=strdup(strip(buf,
+					       "TEL;", &found))) && found){
+		telline=nline;
+	    }else {
+		cont[nline] = strdup(buf);
+		/* printf("unparsed line : %s\n",buf); */
+	    }
+	    //printf ("fnline:%d  - fn:'%s'",fnline,cont[fnline]);
+	    //printf ("found: %d\n",found);
 	    //printf("line: %d - %s\n", nline, cont[nline]);
 	    nline++;
 	}else if (strncmp(buf,"END:VCARD",8)==0) {
-	    if (cont[2]){
-		cttree= insert(cttree,newitem(strdup(cont[1]),strdup(cont[2])));
+	    if (cont[fnline]){
+		cttree= insert(cttree,newitem(strdup(cont[nameline]),strdup(cont[fnline]), strdup(cont[emailline]), strdup(cont[telline])));
+	    }
+	    int i=0;
+	    for (i = 0; i < nline; i++){
+		cont[i]="";
 	    }
 	    state = 0;
 	    nline=0;
@@ -132,10 +160,19 @@ Cttree* vcfgetcontacts(FILE *f, int * count)
 
 /* strip: strip prefix from tag and remove trailing \n left from fgets */
 /* can i manipulate the tag and just return an int if the prefix is found*/
-char * strip(char* tag, char * prefix)
+char * strip(char* tag, char * prefix, int *found)
 {
+    unsigned i;
     if (strncmp(tag,prefix,strlen(prefix)) == 0){
+	for(i=0 ; i < strlen(tag); i++ ){
+	    if (tag[i] == ';'){
+		tag[i] = ',';
+	    }
+	}
 	tag +=strlen(prefix);
+	*found = 1;
+    }else {
+	*found =0;
     }
     return tag;
 }
@@ -150,7 +187,7 @@ int main(void)
      */
     if ((cts = vcfgetcontacts(stdin,&nc)) != NULL){
 	printf ("ncontacts : '%d'\n", nc);
-	applyinorder(cts,printcttree," name:%s \n fname:%s\n");
+	applyinorder(cts,printcttree,">fname:%s\n name:%s \n email:%s\n tel:%s\n\n");
     }
     return 0;
 }
