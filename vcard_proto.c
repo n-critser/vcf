@@ -2,7 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include "../eprintf.h"
-
+#include <ctype.h>
 /* tree code adapted from practice of programming */
 typedef struct Cttree Cttree;
 struct Cttree{
@@ -160,13 +160,28 @@ Cttree* vcfgetcontacts(FILE *f, int * count)
 
 /* strip: strip prefix from tag and remove trailing \n left from fgets */
 /* can i manipulate the tag and just return an int if the prefix is found*/
+/*
+>fname:Mike z. Target
+ name:z. Target;Mike;;;
+ email:CELL;PREF:3473000178
+ tel:CELL;PREF:3473000178
+
+
+ */
 char * strip(char* tag, char * prefix, int *found)
 {
-    unsigned i;
+    int i;
     if (strncmp(tag,prefix,strlen(prefix)) == 0){
-	for(i=0 ; i < strlen(tag); i++ ){
+	for(i=strlen(tag) ; i >=0&& !isalpha(tag[i]); i-- ){
+	    /* if (tag[i] == ';' && tag[i+1] != ';'){ */
+	    /* 	tag[i] = '-'; */
+
+	    /* } else if (tag[i] == ';'){ */
+	    /* 	/\* remove the semicolons delimiting some words*\/ */
+	    /* 	memmove(tag+i, tag+i+1, strlen(tag+i+1)); /\**\/ */
+	    /* } */
 	    if (tag[i] == ';'){
-		tag[i] = ',';
+		memmove(tag+i, tag+i+1,strlen(tag+i)+1);
 	    }
 	}
 	tag +=strlen(prefix);
