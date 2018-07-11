@@ -1,12 +1,14 @@
 #include <string.h>
 #include <ctype.h>
 #include <assert.h>
-
+#include <limits.h>
 #include "vcard.h"
 #include "../../eprintf.h"
 
 int hamming_distance(unsigned x, unsigned y);
 int hamstring(char * newname, char * treename);
+int levenshtein_distance(const char *s, int len_s, const char*t, int len_t);
+const char * bitap_bitwise_search(const char *text, const char *pattern);
 struct Cttree{
     char *name;
     char *fname;
@@ -35,6 +37,68 @@ Cttree *insert (Cttree * cttreep, Cttree *newctp)
     return cttreep;
 }
 
+/* weaksearch: returns a newly constructed Cttree 
+   containing only search results
+*/
+Cttree *weaksearch(Cttree * cttreep, char*name, int *nct)
+{
+    *nct=0;
+    Cttree * sres=NULL;
+    Cttree *temp = NULL;
+    if ((temp = lookup(cttreep, name, 1)) != NULL){
+	sres = newitem(name,temp->fname,temp->email,temp->tel);
+	(*nct)++;
+    }
+
+    if (!sres){
+	int cmp;
+	int hamdist,levdist;
+	char * treefound;
+	char * namefound;
+	const char * bits;
+	temp = cttreep;
+	do {
+	    bits = bitap_bitwise_search(temp->name,name);
+	    if (bits!=NULL){
+		printf ("bits : %s\n ", bits);
+	    }
+	    /* levdist= levenshtein_distance(name, strlen(name) +1, */
+	    /* 				  temp->name, strlen(temp->name)+1); */
+	    hamdist=hamstring(name,temp->name);
+	    treefound=strstr(name,temp->name);
+	    namefound=strstr(temp->name,name);
+	    cmp = strcmp(name, temp->name);
+	    size_t reject = strcspn(name, temp->name);
+
+	    size_t accept = strspn(name, temp->name);
+
+	    if (accept || reject){
+		printf("*******************************\n"
+		       "name: %s - temp->name: %s \n", name, temp->name);
+		printf ("reject : %d\n ", reject);
+		printf ("accept : %d\n ", accept);
+	    }
+	    printf ("treefound: %s - namefound : %s \n", treefound, namefound);
+	    /* printf ("levdit: %d\n ", levdist); */
+	    if ( accept || treefound 
+		|| namefound ){  //|| bits ||hamdist < 20 ){
+		printf ("FOUND CLOSE MATCH\n");
+		printf ("hamstring : %d - name: %s - treename: %s\n",
+			hamdist, name, temp->name);
+		sres=insert(sres ,
+			    newitem(temp->name,temp->fname,temp->email,temp->tel));
+		(*nct)++;
+	    }
+
+	    if( cmp < 0){
+		temp = temp->left;
+	    } else {
+		temp = temp->right;
+	    }
+	}while(temp);
+    }
+    return sres;
+}
 
 Cttree *lookup (Cttree * cttreep, char *name, int search)
 {
@@ -47,16 +111,6 @@ Cttree *lookup (Cttree * cttreep, char *name, int search)
     char * treefound=strstr(name,cttreep->name);
     char * namefound=strstr(cttreep->name,name);
     if (cmp == 0){
-	return cttreep;
-    } else if( search && (hamdist < 20 || treefound !=NULL
-			  ||namefound !=NULL)){
-	size_t reject = strcspn(name, cttreep->name);
-	printf ("reject : %d\n ", reject);
-	size_t accept = strspn(name, cttreep->name);
-	printf ("accept : %d\n ", accept);
-	printf ("FOUND CLOSE MATCH\n");
-	printf ("hamstring : %d - name: %s - treename: %s\n",
-		hamdist, name, cttreep->name);
 	return cttreep;
     } else if( cmp < 0){
 	return lookup(cttreep->left, name,search);
@@ -98,6 +152,71 @@ int hamming_distance(unsigned x, unsigned y)
     return dist;
 }
 
+int minimum(int i, int j, int k)
+{
+    int min = (i < j)? i : j;
+    min = (min < k) ? min: k;
+    return min;
+}
+/*
+  https://en.wikipedia.org/wiki/Levenshtein_distance
+ */
+int levenshtein_distance(const char *s, int len_s, const char*t, int len_t)
+{
+    int cost;
+    /*base case*/
+    if (len_s == 0) return len_t;
+    if (len_t == 0) return len_s;
+
+    if (s[len_s-1] == t[len_t-1]){
+	cost = 0;
+    } else {
+	cost = 1;
+    }
+
+    /* recursion */
+    return minimum(levenshtein_distance(s, len_s-1, t, len_t) +1,
+		   levenshtein_distance(s, len_s, t, len_t -1) +1,
+		   levenshtein_distance(s, len_s-1, t, len_t-1) +cost);
+
+}
+
+/*
+  https://en.wikipedia.org/wiki/Bitap_algorithm
+*/
+const char * bitap_bitwise_search(const char *text, const char *pattern)
+{
+    int m = strlen(pattern);
+    unsigned long R;
+    unsigned long pattern_mask[CHAR_MAX+1];
+    int i;
+    if (pattern[0] == '\0') return text;
+    if (m > 31){
+	printf ("PATTERN IS TOO LONG\n");
+	return NULL;
+    }
+
+    R = ~1;
+
+    for (i =0; i <= CHAR_MAX; ++i){
+	pattern_mask[i] = ~0;
+    }
+
+    for (i = 0; i < m; ++i){
+	pattern_mask[pattern[i]] &= ~(1UL << i);
+    }
+
+    for (i = 0; text[i] != '\0'; ++i){
+	R |= pattern_mask[text[i]];
+	R <<=1;
+
+	if (0 == (R & (1UL << m))){
+	    return (text +i -m ) +1;
+	}
+    }
+    return NULL;
+}
+
 void applyinorder(Cttree *cttreep,
 		  void(*fn)(Cttree*, void *), void *arg)
 {
@@ -136,6 +255,7 @@ int maxline = 1;
 char buf[200];
 Cttree* vcfgetcontacts(FILE *f, int * count)
 {
+    assert(f);
     Cttree * cttree = NULL;
     char *p, **newct;
     int ncon,state,nline,found;

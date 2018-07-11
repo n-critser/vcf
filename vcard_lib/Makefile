@@ -27,8 +27,8 @@ clean :
 	rm $(EXECUTABLE)
 	rm *.o
 
-test :
-	ls -A
+test :	all
+	bash test_weaksearch.sh
 setup :
 	@ printf "hello,world\n"
 	@ if [ ! -d bin ]; then  mkdir bin; fi;

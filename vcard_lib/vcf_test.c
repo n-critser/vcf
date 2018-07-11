@@ -17,9 +17,11 @@ int main(void)
     found = lookup(cts, "Eieland;A",1);
     applyinorder(found,printcttree,
 		 "FOUND\n>fname:%s\n name:%s \n email:%s\n tel:%s\n\n");
-    found = lookup(cts, "Andreas",1);
+    int fcount=0;
+    found = weaksearch(cts, "Andreas",&fcount);
     applyinorder(found,printcttree,
     		 "FOUND\n>fname:%s\n name:%s \n email:%s\n tel:%s\n\n");
+    printf ("found count : %d\n", fcount);
     /* found = lookup(cts, "Eieio"); */
     /* applyinorder(found,printcttree, */
     /* 		 "FOUND\n>fname:%s\n name:%s \n email:%s\n tel:%s\n\n"); */

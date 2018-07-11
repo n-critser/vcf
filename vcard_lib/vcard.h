@@ -5,6 +5,7 @@ typedef struct Cttree  Cttree;
 
 Cttree *insert (Cttree * cttreep, Cttree *newctp);
 Cttree *lookup (Cttree * cttreep, char *name, int search);
+Cttree *weaksearch(Cttree * cttreep, char*name, int *nct);
 void applyinorder(Cttree *cttreep,
 		  void(*fn)(Cttree*, void *), void *arg);
 
