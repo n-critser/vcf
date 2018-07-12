@@ -3,7 +3,7 @@
 #include <assert.h>
 #include <limits.h>
 #include "vcard.h"
-#include "../../eprintf.h"
+#include "eprintf.h"
 
 int hamming_distance(unsigned x, unsigned y);
 int hamstring(char * newname, char * treename);

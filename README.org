@@ -1,0 +1,23 @@
+#+TITLE: README
+
+* A minimal vcard library in the spirit of the Practice of Programming CSV library
+
+* Vcard or VCF is the format typically used for contacts in cell phones, calendar apps +++
+  - vcard:  [[https://en.wikipedia.org/wiki/VCard]]
+
+* Library currently can:
+  1. read a file from stdin or other file opening mechanism
+  2. construct a tree from the contacts listed
+  3. allows for a tree to be searched
+     a. exact matches return a singleton list 
+     b. non exact matches return a list of contacts
+  4. uses an inorder interface introduced in the Practice of Programming
+     - the interface requires a functoin pointer that is applied to each
+       list element after calling applyinorder.
+
+* License : 
+  Since the current library uses eprintf.h and eprintf.c which are under 
+  Lucent Technology copyright, the license is non-free. 
+  Once all Lucent copyrighted code is removed or sufficiently refactored the 
+  license will be GPL-3.
+     

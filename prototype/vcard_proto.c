@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include "../eprintf.h"
+#include "eprintf.h"
 #include <ctype.h>
 /* tree code adapted from practice of programming */
 typedef struct Cttree Cttree;

@@ -41,4 +41,4 @@
 # this one fails -- only diff is capital A vs small a 
 ./vcf_weaksearch_test -f cardfiles/ham_vcard_example.vcf -s "Andy"
 ./vcf_weaksearch_test -f cardfiles/ham_vcard_example.vcf -s "d;And"
-./vcf_weaksearch_test -f cardfiles/ham_vcard_example.vcf -s ";"
+./vcf_weaksearch_test -f cardfiles/ham_vcard_example.vcf -s "d"
