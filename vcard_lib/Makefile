@@ -19,7 +19,7 @@ all: 	$(EXECUTABLE)
 	$(CC) $(CFLAGS) -c $^ -o $@
 
 $(EXECUTABLE): % : %.o
-	$(CC) $(CFLAGS) $(LDFLAGS) $^ -o $@ vcard.c eprintf.c
+	$(CC) $(CFLAGS) $(LDFLAGS) $^ -o $@ vcard.c xutil.c
 
 .PHONY : clean test setup
 

@@ -3,7 +3,9 @@
 #include <assert.h>
 #include <limits.h>
 #include "vcard.h"
-#include "eprintf.h"
+//#include "eprintf.h"
+#include "xutil.h"
+
 
 int hamming_distance(unsigned x, unsigned y);
 int hamstring(char * newname, char * treename);
@@ -28,7 +30,7 @@ Cttree *insert (Cttree * cttreep, Cttree *newctp)
     }
     cmp = strcmp(newctp->name, cttreep->name);
     if (cmp == 0 ) {
-	weprintf("inset: duplicate entry %s ignored ",newctp->name);
+	fprintf(stderr,"inset: duplicate entry %s ignored ",newctp->name);
     } else if (cmp < 0) {
 	cttreep->left=insert (cttreep->left,newctp);
     } else {
@@ -37,7 +39,7 @@ Cttree *insert (Cttree * cttreep, Cttree *newctp)
     return cttreep;
 }
 
-/* weaksearch: returns a newly constructed Cttree 
+/* weaksearch: returns a newly constructed Cttree
    containing only search results
 */
 Cttree *weaksearch(Cttree * cttreep, char*name, int *nct)
@@ -80,7 +82,7 @@ Cttree *weaksearch(Cttree * cttreep, char*name, int *nct)
 	    }
 	    printf ("treefound: %s - namefound : %s \n", treefound, namefound);
 	    /* printf ("levdit: %d\n ", levdist); */
-	    if ( accept || treefound 
+	    if ( accept || treefound
 		|| namefound ){  //|| bits ||hamdist < 20 ){
 		printf ("FOUND CLOSE MATCH\n");
 		printf ("hamstring : %d - name: %s - treename: %s\n",
@@ -238,7 +240,7 @@ void printcttree(Cttree *p, void *arg)
 Cttree *newitem(char *name, char *fname, char* email, char * tel)
 {
     Cttree *newp;
-    newp = (Cttree *)emalloc(sizeof(Cttree));
+    newp = (Cttree *)xmalloc(sizeof(Cttree));
     newp->name=name;
     newp->fname=fname;
     newp->email=email;
@@ -282,20 +284,20 @@ Cttree* vcfgetcontacts(FILE *f, int * count)
 	    /*printf ("buf: '%s'\n", buf); */
 	} else if(strncmp(buf,"END:VCARD",8)!=0 && state ==1){
 	    /* contact line handling  */
-	    if ((cont[nline]=strdup(strip(buf,"FN:", &found))) && found){
+	    if ((cont[nline]=xstrdup(strip(buf,"FN:", &found))) && found){
 		fnline=nline;
 		/* printf ("fnline:%d\n  - fn:%s\n",fnline,cont[fnline]); */
-	    } else if((cont[nline]=strdup(strip(buf,
+	    } else if((cont[nline]=xstrdup(strip(buf,
 						"N:", &found))) && found){
 		nameline=nline;
-	    }else if((cont[nline]=strdup(strip(buf,
+	    }else if((cont[nline]=xstrdup(strip(buf,
 					       "EMAIL", &found))) && found){
 		emailline=nline;
-	    }else if((cont[nline]=strdup(strip(buf,
+	    }else if((cont[nline]=xstrdup(strip(buf,
 					       "TEL;", &found))) && found){
 		telline=nline;
 	    }else {
-		cont[nline] = strdup(buf);
+		cont[nline] = xstrdup(buf);
 		/* printf("unparsed line : %s\n",buf); */
 	    }
 	    //printf ("fnline:%d  - fn:'%s'",fnline,cont[fnline]);
@@ -304,7 +306,7 @@ Cttree* vcfgetcontacts(FILE *f, int * count)
 	    nline++;
 	}else if (strncmp(buf,"END:VCARD",8)==0) {
 	    if (cont[fnline]){
-		cttree= insert(cttree,newitem(strdup(cont[nameline]),strdup(cont[fnline]), strdup(cont[emailline]), strdup(cont[telline])));
+		cttree= insert(cttree,newitem(xstrdup(cont[nameline]),xstrdup(cont[fnline]), xstrdup(cont[emailline]), xstrdup(cont[telline])));
 	    }
 	    int i=0;
 	    for (i = 0; i < nline; i++){
@@ -317,7 +319,7 @@ Cttree* vcfgetcontacts(FILE *f, int * count)
 	}
     }
     *count=ncon;
-    //p = strdup(buf);
+    //p = xstrdup(buf);
     return cttree;
 }
 
