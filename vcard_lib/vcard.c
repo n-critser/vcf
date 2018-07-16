@@ -54,12 +54,14 @@ Cttree *weaksearch(Cttree * cttreep, char*name, int *nct)
     *nct=0;
     Cttree * sres=NULL;
     Cttree *temp = NULL;
+    /* first loopup for a tree match*/
     if ((temp = lookup(cttreep, name, 1)) != NULL){
 	sres = newitem(name,temp->fname,temp->email,temp->tel);
 	(*nct)++;
     }
 
-    if (!sres){//fullsearchtree
+    if (!sres){
+	/* search the tree using regex.h */
 	sres = filterinorder(cttreep,sres,fullsearchtree,name);
 	// printf("weaksearch results below:\n");
 	// applyinorder(sres,printcttree,
