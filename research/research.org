@@ -1,0 +1,3 @@
+ 'research/Navarro_Gonzalo_Guided_tour.pdf'
+ 'research/lowrance-wagner.pdf'
+ 'research/string-to-string.pdf'
