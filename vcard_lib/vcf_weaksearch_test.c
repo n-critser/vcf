@@ -45,14 +45,17 @@ int main(int argc, char ** argv)
 	printf ("ncontacts : '%d'\n", nc);
     }
     fclose(file);
+    applyinorder(cts,printcttree,
+		 "CTS\n>fname:%s\n name:%s \n email:%s\n tel:%s\n\n");
+
     Cttree *found;
     int nfnd=0;
     char * sstr=target;//"Eieland;A";
     printf ("searching for : %s\n", sstr);
     found = weaksearch(cts, sstr, &nfnd);
     applyinorder(found,printcttree,
-		 ">fname:%s\n name:%s \n email:%s\n tel:%s\n\n");
-    printf ("found count : %d\n", nfnd);
+		 ">weaksearch fname:%s\n name:%s \n email:%s\n tel:%s\n\n");
+    // printf ("found count : %d\n", nfnd);
     /* sstr="Andreas"; */
     /* printf ("searching for : %s\n", sstr); */
 

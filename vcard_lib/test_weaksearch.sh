@@ -9,4 +9,4 @@
 
 #  name:Bald;Proctor 
 ./vcf_weaksearch_test -f cardfiles/multiple_example.vcf -s "Proct"
-./vcf_weaksearch_test -f cardfiles/multiple_example.vcf -s "Bald"
+#./vcf_weaksearch_test -f cardfiles/multiple_example.vcf -s "Bald"

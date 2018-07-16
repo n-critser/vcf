@@ -7,6 +7,12 @@
 #include "xutil.h"
 #include "regex.h"
 
+
+/* search related */
+Cttree* filterinorder(Cttree *cttreep, Cttree*newtree,
+		   int(*fn)(Cttree*, void *), void *arg);
+int fullsearchtree(Cttree *p, void *arg);
+
 int hamming_distance(unsigned x, unsigned y);
 int hamstring(char * newname, char * treename);
 int levenshtein_distance(const char *s, int len_s, const char*t, int len_t);
@@ -39,8 +45,9 @@ Cttree *insert (Cttree * cttreep, Cttree *newctp)
     return cttreep;
 }
 
-/* weaksearch: returns a newly constructed Cttree
-   containing only search results
+/* weaksearch: returns a new Cttree of results
+   based on the tree structure name field tree branchs are searched
+   using possible regex match. 
 */
 Cttree *weaksearch(Cttree * cttreep, char*name, int *nct)
 {
@@ -52,54 +59,64 @@ Cttree *weaksearch(Cttree * cttreep, char*name, int *nct)
 	(*nct)++;
     }
 
-    if (!sres){
-	int cmp;
-	int hamdist,levdist;
-	char * treefound;
-	char * namefound;
-	const char * bits;
-	temp = cttreep;
-	do {
-	    bits = bitap_bitwise_search(temp->name,name);
-	    if (bits!=NULL){
-		printf ("bits : %s\n ", bits);
-	    }
-	    /* levdist= levenshtein_distance(name, strlen(name) +1, */
-	    /* 				  temp->name, strlen(temp->name)+1); */
-	    hamdist=hamstring(name,temp->name);
-	    treefound=strstr(name,temp->name);
-	    namefound=strstr(temp->name,name);
-	    cmp = strcmp(name, temp->name);
-	    size_t reject = strcspn(name, temp->name);
-	    size_t accept = strspn(name, temp->name);
-	    int reg = regf(xstrdup(temp->name),xstrdup(name));
-	    if (reg ){
-		printf ("NAME FOUND : %s \n", name);
-	    }
-	    if (accept || reject){
-		printf("*******************************\n"
-		       "name: %s - temp->name: %s \n", name, temp->name);
-		printf ("reject : %d\n ", reject);
-		printf ("accept : %d\n ", accept);
-	    }
-	    printf ("treefound: %s - namefound : %s \n", treefound, namefound);
-	    /* printf ("levdit: %d\n ", levdist); */
-	    if ( reg || accept || treefound
-		|| namefound ){  //|| bits ||hamdist < 20 ){
-		printf ("FOUND CLOSE MATCH\n");
-		printf ("hamstring : %d - name: %s - treename: %s\n",
-			hamdist, name, temp->name);
-		sres=insert(sres ,
-			    newitem(temp->name,temp->fname,temp->email,temp->tel));
-		(*nct)++;
-	    }
+    if (!sres){//fullsearchtree
+	sres = filterinorder(cttreep,sres,fullsearchtree,name);
+	// printf("weaksearch results below:\n");
+	// applyinorder(sres,printcttree,
+	//	     "sres\n>fname:%s\n name:%s \n email:%s\n tel:%s\n\n");
 
-	    if( cmp < 0){
-		temp = temp->left;
-	    } else {
-		temp = temp->right;
-	    }
-	}while(temp);
+/* int cmp; */
+	/* int hamdist,levdist; */
+	/* char * treefound; */
+	/* char * namefound; */
+	/* const char * bits; */
+	/* temp = cttreep; */
+	/* do { */
+	/*     printf("*******************************\n" */
+	/* 	   "NO Exact match found" */
+	/* 	   "name: %s - temp->name: %s \n", name, temp->name); */
+
+	/*     bits = bitap_bitwise_search(temp->name,name); */
+	/*     if (bits!=NULL){ */
+	/* 	printf ("bits : %s\n ", bits); */
+	/*     } */
+	/*     /\* levdist= levenshtein_distance(name, strlen(name) +1, *\/ */
+	/*     /\* 				  temp->name, strlen(temp->name)+1); *\/ */
+	/*     hamdist=hamstring(name,temp->name); */
+	/*     treefound=strstr(name,temp->name); */
+	/*     namefound=strstr(temp->name,name); */
+	/*     cmp = strcmp(name, temp->name); */
+	/*     size_t reject = strcspn(name, temp->name); */
+	/*     size_t accept = strspn(name, temp->name); */
+
+	/*     int reg = regf(temp->name,name); */
+	/*     if (reg ){ */
+	/* 	printf ("NAME FOUND : %s \n", name); */
+	/*     } */
+	/*     if (accept || reject){ */
+	/* 	printf( */
+	/* 	       "name: %s - temp->name: %s \n", name, temp->name); */
+	/* 	printf ("reject : %d\n ", reject); */
+	/* 	printf ("accept : %d\n ", accept); */
+	/*     } */
+	/*     printf ("treefound: %s - namefound : %s \n", treefound, namefound); */
+	/*     /\* printf ("levdit: %d\n ", levdist); *\/ */
+	/*     if ( reg || accept || treefound */
+	/* 	|| namefound ){  //|| bits ||hamdist < 20 ){ */
+	/* 	printf ("FOUND CLOSE MATCH\n"); */
+	/* 	printf ("hamstring : %d - name: %s - treename: %s\n", */
+	/* 		hamdist, name, temp->name); */
+	/* 	sres=insert(sres , */
+	/* 		    newitem(temp->name,temp->fname,temp->email,temp->tel)); */
+	/* 	(*nct)++; */
+	/*     } */
+
+	/*     if( cmp < 0){ */
+	/* 	temp = temp->left; */
+	/*     } else { */
+	/* 	temp = temp->right; */
+	/*     } */
+	/* }while(temp); */
     }
     return sres;
 }
@@ -237,6 +254,46 @@ void printcttree(Cttree *p, void *arg)
     char *fmt;
     fmt = (char*) arg;
     printf(fmt , p->fname, p->name , p->email,p->tel);
+}
+
+Cttree* filterinorder(Cttree *cttreep, Cttree*newtree,
+		  int(*fn)(Cttree*, void *), void *arg)
+{
+    if (cttreep == NULL){
+	return cttreep;
+    }
+    Cttree * temp;
+    if ((temp=filterinorder(cttreep->left, newtree,fn, arg))){
+	/* printf ("added left to newtree\n"); */
+	newtree = temp;
+    }
+
+    if ((*fn)(cttreep, arg)){
+	printf ("\nADDED NEW CONTACT TO FOUND LIST:%s\n",cttreep->name);
+	newtree=insert(newtree,newitem(xstrdup(cttreep->name),
+			       xstrdup(cttreep->fname),
+			       xstrdup(cttreep->email),
+			       xstrdup(cttreep->tel)));
+    }
+
+    if ((temp = filterinorder(cttreep->right,newtree,fn,arg) )){
+	/* printf ("added right to newtree\n"); */
+	newtree= temp;
+    }
+
+
+    /* applyinorder(newtree,printcttree, */
+    /* 		 "newtree\n>fname:%s\n name:%s \n email:%s\n tel:%s\n\n"); */
+
+    return newtree;
+}
+
+int fullsearchtree(Cttree *p, void *arg)
+{
+    char *sterm;
+    sterm= (char*)arg;
+    int res = regf(p->name,sterm);
+    return res;
 }
 
 Cttree *newitem(char *name, char *fname, char* email, char * tel)
