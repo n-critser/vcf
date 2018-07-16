@@ -5,6 +5,8 @@
 # what about the degree of acceptable fuzziness
 
 # this one succeeds for some reason
-./vcf_weaksearch_test -f cardfiles/multiple_example.vcf -s "Spieg"
+#./vcf_weaksearch_test -f cardfiles/multiple_example.vcf -s "Spieg"
 
-./vcf_weaksearch_test -f cardfiles/multiple_example.vcf -s "Boze"
+#  name:Bald;Proctor 
+./vcf_weaksearch_test -f cardfiles/multiple_example.vcf -s "Proct"
+./vcf_weaksearch_test -f cardfiles/multiple_example.vcf -s "Bald"

@@ -5,7 +5,7 @@
 #include "vcard.h"
 //#include "eprintf.h"
 #include "xutil.h"
-
+#include "regex.h"
 
 int hamming_distance(unsigned x, unsigned y);
 int hamstring(char * newname, char * treename);
@@ -71,9 +71,11 @@ Cttree *weaksearch(Cttree * cttreep, char*name, int *nct)
 	    namefound=strstr(temp->name,name);
 	    cmp = strcmp(name, temp->name);
 	    size_t reject = strcspn(name, temp->name);
-
 	    size_t accept = strspn(name, temp->name);
-
+	    int reg = regf(xstrdup(temp->name),xstrdup(name));
+	    if (reg ){
+		printf ("NAME FOUND : %s \n", name);
+	    }
 	    if (accept || reject){
 		printf("*******************************\n"
 		       "name: %s - temp->name: %s \n", name, temp->name);
@@ -82,7 +84,7 @@ Cttree *weaksearch(Cttree * cttreep, char*name, int *nct)
 	    }
 	    printf ("treefound: %s - namefound : %s \n", treefound, namefound);
 	    /* printf ("levdit: %d\n ", levdist); */
-	    if ( accept || treefound
+	    if ( reg || accept || treefound
 		|| namefound ){  //|| bits ||hamdist < 20 ){
 		printf ("FOUND CLOSE MATCH\n");
 		printf ("hamstring : %d - name: %s - treename: %s\n",
@@ -306,7 +308,10 @@ Cttree* vcfgetcontacts(FILE *f, int * count)
 	    nline++;
 	}else if (strncmp(buf,"END:VCARD",8)==0) {
 	    if (cont[fnline]){
-		cttree= insert(cttree,newitem(xstrdup(cont[nameline]),xstrdup(cont[fnline]), xstrdup(cont[emailline]), xstrdup(cont[telline])));
+		cttree= insert(cttree,newitem(xstrdup(cont[nameline]),
+					      xstrdup(cont[fnline]),
+					      xstrdup(cont[emailline]),
+					      xstrdup(cont[telline])));
 	    }
 	    int i=0;
 	    for (i = 0; i < nline; i++){
