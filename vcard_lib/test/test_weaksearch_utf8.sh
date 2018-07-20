@@ -1,0 +1,12 @@
+#!/bin/bash
+
+# BEGIN:VCARD
+# VERSION:2.1
+# N;CHARSET=UTF-8;ENCODING=QUOTED-PRINTABLE:;=20=20=20=20=E8=91=9B=20=E9=BE=99;;;
+# FN;CHARSET=UTF-8;ENCODING=QUOTED-PRINTABLE:=E8=91=9B=20=E9=BE=99
+# TEL;CELL;PREF:3336665454
+# EMAIL;HOME:gelong@foobar.com
+# END:VCARD
+
+
+../vcf_weaksearch_test -s "葛" -f ../cardfiles/葛龙.vcf

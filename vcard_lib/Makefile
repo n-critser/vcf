@@ -1,8 +1,8 @@
 #
 #  https://gcc.gnu.org/onlinedocs/ RTFM
 #https://stackoverflow.com/questions/28037124/how-to-use-makefile-to-compile-and-update-all-files-in-one-folder-independently
-CC=gcc     #++ -std=c++11
-CFLAGS=-g3 
+CC=c99     #++ -std=c++11
+CFLAGS=-g3 -pedantic -Wall -Wextra 
 XFLAGS=-Q # this flag will output alot !https://gcc.gnu.org/onlinedocs/gcc-2.95.2/gcc_2.html#SEC9
 LDFLAGS=
 SOURCES=$(wildcard *.c)

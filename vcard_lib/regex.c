@@ -17,7 +17,8 @@ int regf(const char * txt, const char * pat)
 	    txt++;
 	    break;
 	}
-    }while(txt++);
+	txt++;
+    }while((*txt)!='\0');
     /* printf ("after initial search : regf:\t txt:%s \t pat:%s\n",txt,pat); */
     if (s != S0 && regwalk(txt,pat ) ){
 	return 1;

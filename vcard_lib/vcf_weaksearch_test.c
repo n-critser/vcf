@@ -8,6 +8,7 @@ int main(int argc, char ** argv)
     char * target;
     char * fname;
     FILE *file;
+    char * usefmt = "USAGE: %s -s <searchterm> -f <file>\n ";
     if (argc > 1){
 	for (i = 1 ; i < argc && (argv[i][0] == '-'); i++){
 	    printf("#%d - '%s' \n",i,argv[i]);
@@ -25,7 +26,7 @@ int main(int argc, char ** argv)
 	}
 
     }else {
-	fprintf(stderr,"NOT ENOUGH ARGS");
+	fprintf(stderr,usefmt,argv[0]);
 	exit(1);
     }
 
@@ -55,16 +56,5 @@ int main(int argc, char ** argv)
     found = weaksearch(cts, sstr, &nfnd);
     applyinorder(found,printcttree,
 		 ">weaksearch fname:%s\n name:%s \n email:%s\n tel:%s\n\n");
-    // printf ("found count : %d\n", nfnd);
-    /* sstr="Andreas"; */
-    /* printf ("searching for : %s\n", sstr); */
-
-    /* found = weaksearch(cts, sstr); */
-    /* applyinorder(found,printcttree, */
-    /* 		 ">fname:%s\n name:%s \n email:%s\n tel:%s\n\n"); */
-    /* found = lookup(cts, "Eieio"); */
-    /* applyinorder(found,printcttree, */
-    /* 		 "FOUND\n>fname:%s\n name:%s \n email:%s\n tel:%s\n\n"); */
-
     return nfnd;
 }
