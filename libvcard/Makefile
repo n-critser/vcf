@@ -28,7 +28,8 @@ clean :
 	rm *.o
 
 test :	all
-	bash test_weaksearch.sh
+	bash test/test_weaksearch.sh
+	$(RM) test/weaksearch.out
 setup :
 	@ printf "hello,world\n"
 	@ if [ ! -d bin ]; then  mkdir bin; fi;

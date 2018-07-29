@@ -1,3 +1,29 @@
+/*
+  TODO: use a linkedlist for email and phone (multiples)
+  TODO: improve display - remove delimiters and protocol markers
+
+  TODO: USE WARN AND ERR
+#include <err.h>
+
+void err(int eval, const char *fmt, ...);
+
+void errx(int eval, const char *fmt, ...);
+
+void warn(const char *fmt, ...);
+
+void warnx(const char *fmt, ...);
+
+#include <stdarg.h>
+
+void verr(int eval, const char *fmt, va_list args);
+
+void verrx(int eval, const char *fmt, va_list args);
+
+void vwarn(const char *fmt, va_list args);
+
+void vwarnx(const char *fmt, va_list args);
+
+ */
 #include <string.h>
 #include <ctype.h>
 #include <assert.h>
@@ -402,7 +428,8 @@ char * strip(char* tag, char * prefix, int *found)
 {
     int i;
     if (strncmp(tag,prefix,strlen(prefix)) == 0){
-	for(i=strlen(tag) ; i >=0&& !isalpha(tag[i]); i-- ){
+	//tag=strchr(tag,':');
+	for(i=strlen(tag) ; i >=0 && !isalpha(tag[i]); i-- ){
 	    /* if (tag[i] == ';' && tag[i+1] != ';'){ */
 	    /* 	tag[i] = '-'; */
 

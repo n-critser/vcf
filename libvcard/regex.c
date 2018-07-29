@@ -10,6 +10,7 @@ int regf(const char * txt, const char * pat)
     STATE s = S0;
     /* printf ("regf:\t txt:%s \t pat:%s\n",txt,pat); */
     do{
+	/* skip ahead in txt until we hit part of pat */
 	if ((*txt) == (*pat)){
 	    /* STATE goes to S1 */
 	    s = S1;
