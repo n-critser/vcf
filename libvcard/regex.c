@@ -32,7 +32,7 @@ int regwalk(const char *txt,  const char *pat)
 {
     /* basecase */
     if ((*pat) == '\0'){ /* exact string*/
-	printf ("*******EXACT STRING*********\n");
+	/* printf ("*******EXACT STRING*********\n"); */
 	return 1;
     }
     if (*txt!='\0' && (pat[0] == *txt)){

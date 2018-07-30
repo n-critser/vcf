@@ -298,7 +298,7 @@ Cttree* filterinorder(Cttree *cttreep, Cttree*newtree,
     }
 
     if ((*fn)(cttreep, arg)){
-	printf ("\nADDED NEW CONTACT TO FOUND LIST:%s\n",cttreep->name);
+	/* printf ("\nADDED NEW CONTACT TO FOUND LIST:%s\n",cttreep->name); */
 	newtree=insert(newtree,newitem(xstrdup(cttreep->name),
 			       xstrdup(cttreep->fname),
 			       xstrdup(cttreep->email),

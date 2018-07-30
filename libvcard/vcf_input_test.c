@@ -55,7 +55,7 @@ int main(int argc, char ** argv)
     char sstr[80];//target;//"Eieland;A";
     int x;
     scanf("%80[^\n]s",sstr);
-    printf("SEARCH TERM: %s\n", sstr);
+    /* printf("SEARCH TERM: %s\n", sstr); */
     /* printf ("searching for : %s\n", sstr); */
     if (sstr == NULL){
 	errx(1,"%s","NO SEARCH TERM GIVEN!");
@@ -63,7 +63,7 @@ int main(int argc, char ** argv)
     }
     found = weaksearch(cts, sstr, &nfnd);
     applyinorder(found,printcttree,
-		 ">weaksearch fname:%s\n name:%s \n email:%s\n tel:%s\n");
+		 ">CONTACT:\nfname:%s\n name:%s \n email:%s\n tel:%s\n");
 
     /* while ((x= scanf("%24[^\n]s",sstr))==0){ */
     /* 	printf("SEARCH TERM: %s", sstr); */

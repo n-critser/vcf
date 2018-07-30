@@ -9,7 +9,7 @@ SOURCES=$(wildcard *.c)
 OBJECTS=$(SOURCES:.c=.o)
 TESTS=$(wildcard *_test.c)
 EXECUTABLE=$(TESTS:.c=)
-
+CP=cp
 all: 	$(EXECUTABLE)
 
 
@@ -20,6 +20,10 @@ all: 	$(EXECUTABLE)
 
 $(EXECUTABLE): % : %.o
 	$(CC) $(CFLAGS) $(LDFLAGS) $^ -o $@ vcard.c xutil.c regex.c
+
+
+install: all 
+	$(CP) vcf_input_test ~/.bin/vcfsearch
 
 .PHONY : clean test setup
 
