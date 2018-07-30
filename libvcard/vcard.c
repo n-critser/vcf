@@ -88,6 +88,7 @@ Cttree *weaksearch(Cttree * cttreep, char*name, int *nct)
 
     if (!sres){
 	/* search the tree using regex.h */
+	
 	sres = filterinorder(cttreep,sres,fullsearchtree,name);
 	// printf("weaksearch results below:\n");
 	// applyinorder(sres,printcttree,
@@ -316,11 +317,28 @@ Cttree* filterinorder(Cttree *cttreep, Cttree*newtree,
     return newtree;
 }
 
+char* strupper(const char * raw)
+{
+    char * newstr=xstrdup(raw);
+    int i;
+    i=0;
+    for (i=0;newstr[i]!='\0';i++){
+	newstr[i]=toupper(newstr[i]);
+    }
+    /* printf("raw: %s\n",raw); */
+    /* printf("newstr: %s\n",newstr); */
+    return newstr;
+}
+
 int fullsearchtree(Cttree *p, void *arg)
 {
     char *sterm;
     sterm= (char*)arg;
-    int res = regf(p->name,sterm);
+    char * upname=strupper(p->name);
+    char * upsterm=strupper(sterm);
+    int res = regf(upname,upsterm);
+    free(upname);
+    free(upsterm);
     return res;
 }
 
