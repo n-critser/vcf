@@ -1,5 +1,6 @@
 
 #include "vcard.h"
+#include <assert.h>
 #include <string.h>
 int main(int argc, char ** argv)
 {
@@ -37,7 +38,7 @@ int main(int argc, char ** argv)
 
 
     int nc=0;
-    Cttree *cts=NULL;
+    Cttree cts=NULL;
     /* should have at least a llist or tree as a result of
        vcfgetcontacts so user can access the list for contact info
      */
@@ -49,7 +50,8 @@ int main(int argc, char ** argv)
     /* applyinorder(cts,printcttree, */
     /* 		 "CTS\n>fname:%s\n name:%s \n email:%s\n tel:%s\n\n"); */
 
-    Cttree *found;
+    assert(cts);
+    Cttree found;
     int nfnd=0;
     char * sstr=target;//"Eieland;A";
     /* printf ("searching for : %s\n", sstr); */

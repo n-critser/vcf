@@ -1,6 +1,8 @@
 #include "xutil.h"
 #include <stdio.h>
 #include <string.h>
+#include <err.h>
+#include <errno.h>
 
 static char * progname=NULL;
 
@@ -11,9 +13,9 @@ void * xmalloc(size_t size)
 	fprintf(stderr, "CAN'T MALLOC 0");
 	exit(1);
     }
-    p = malloc(size);
-    if (p == NULL){
-	fprintf(stderr, "MALLOC FAILED %zu bytes:", size);
+    if ((p = malloc(size)) == NULL){
+	fprintf(stderr,
+		"MALLOC FAILED %zu bytes - error: %s", size,strerror(errno));
 	exit(1);
     }
     return p;
