@@ -2,9 +2,17 @@
 #include <stdio.h>
 
 typedef struct cttree * Cttree;
+typedef struct vcf * Vcf;
+struct vcf {
+    Cttree tree;
+    int count;
+};
 
-Cttree construct();
-void destroy(Cttree cttreep);
+
+
+
+Vcf  construct();
+void destroy(Vcf vcfp);
 
 Cttree insert (Cttree  cttreep, Cttree newctp);
 Cttree lookup (Cttree  cttreep, char *name, int search);
@@ -13,8 +21,9 @@ void applyinorder(Cttree cttreep,
 		  void(*fn)(Cttree, void *), void *arg);
 
 void printcttree(Cttree p, void *arg);
-Cttree newitem(char *name, char *fname, char* email, char * tel);
-Cttree vcfgetcontacts(FILE *f, int * count);
+Cttree newitem(const char *name, const char *fname,
+	       const char* email, const char * tel);
+Cttree vcfgetcontacts(Vcf vcfp,FILE *f, int * count);
 int   vcfgetncontact(int n);
 char * strip(char* tag, char * prefix, int * found);
 char * unnew(char *ln);

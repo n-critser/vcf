@@ -19,6 +19,7 @@ int main(int argc, char ** argv)
 		/* printf("argc = %d \n",argc); */
 		/* printf("argv[i+1]= %s\n",argv[i+1]); */
 		target = argv[++i];
+		printf ("searching for : %s\n",target);
 	    } else if(strcmp(argv[i],"-f")==0 && (i+1 < argc)){
 		/* printf("argc = %d \n",argc); */
 		/* printf("argv[i+1]= %s\n",argv[i+1]); */
@@ -38,25 +39,31 @@ int main(int argc, char ** argv)
 
 
     int nc=0;
-    Cttree cts=NULL;
+    Vcf  v = construct();
+
     /* should have at least a llist or tree as a result of
        vcfgetcontacts so user can access the list for contact info
      */
     /* printf ("about to get contacts\n"); */
-    if ((cts = vcfgetcontacts(file,&nc)) != NULL){
+    if ((v->tree = vcfgetcontacts(v,file,&nc)) != NULL){
 	printf ("ncontacts : '%d'\n", nc);
     }
-    fclose(file);
-    /* applyinorder(cts,printcttree, */
-    /* 		 "CTS\n>fname:%s\n name:%s \n email:%s\n tel:%s\n\n"); */
+    /* fclose(file); */
+    destroy(v);
+    assert(v->tree);
+    applyinorder(v->tree,printcttree,
+    		 "CTS\n>fname:%s\n name:%s \n email:%s\n tel:%s\n\n");
 
-    assert(cts);
-    Cttree found;
-    int nfnd=0;
-    char * sstr=target;//"Eieland;A";
-    /* printf ("searching for : %s\n", sstr); */
-    found = weaksearch(cts, sstr, &nfnd);
-    applyinorder(found,printcttree,
-		 ">weaksearch fname:%s\n name:%s \n email:%s\n tel:%s");
-    return nfnd;
+
+    /* assert(cts); */
+
+    /* /\* test weaksearch *\/ */
+    /* Cttree found; */
+    /* int nfnd=0; */
+    /* char * sstr=target; */
+    /* /\* printf ("searching for : %s\n", sstr); *\/ */
+    /* found = weaksearch(cts, sstr, &nfnd); */
+    /* applyinorder(found,printcttree, */
+    /* 		 ">weaksearch fname:%s\n name:%s \n email:%s\n tel:%s"); */
+    return 0;
 }

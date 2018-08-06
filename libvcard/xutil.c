@@ -3,7 +3,7 @@
 #include <string.h>
 #include <err.h>
 #include <errno.h>
-
+#include <assert.h>
 static char * progname=NULL;
 
 void * xmalloc(size_t size)
@@ -25,8 +25,10 @@ char * xstrdup(const char* str )
 {
     char *ret;
     size_t slen = strlen(str)+1;
-    ret = xmalloc(slen);
+    /* printf("slen: %lu\n",slen); */
+    ret =(char*) xmalloc(slen);
     strncpy(ret,str,slen);
+    assert(strlen(str) == strlen(ret));
     return ret;
 }
 

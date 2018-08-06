@@ -37,42 +37,126 @@ void vwarnx(const char *fmt, va_list args);
 #include "regex.h"
 
 
+Cttree newemptyitem();
+
+
 /* search related */
 Cttree filterinorder(Cttree cttreep, Cttree  newtree,
 		   int(*fn)(Cttree , void *), void *arg);
 int fullsearchtree(Cttree p, void *arg);
 
-/* int hamming_distance(unsigned x, unsigned y); */
-/* int hamstring(char * newname, char * treename); */
-/* int levenshtein_distance(const char *s, int len_s, const char*t, int len_t); */
-/* const char * bitap_bitwise_search(const char *text, const char *pattern); */
+
 struct cttree{
+    int depth;
+    Cttree left;
+    Cttree right;
     char *name;
     char *fname;
     char *tel;
     char *email;
     char *addr;
-    Cttree left;
-    Cttree right;
 };
+
+
+void counttree(Cttree p, void*arg)
+{
+    int *intp;
+    intp = (int *) arg;
+    (*intp)++;
+}
+
+void depthtree(Cttree p, void*arg)
+{
+    int *intp;
+    intp = (int *) arg;
+    if (p->depth > (*intp)){
+	(*intp) = p->depth;
+    }
+}
+
+
+Vcf
+construct()
+{
+    Vcf v;
+    v = xmalloc(sizeof(*v));
+    v->tree=NULL;
+    v->count = 0;
+    return v;
+}
+
+void
+freeall(Cttree cttreep){
+    if (cttreep == NULL){
+	return;
+    }
+    free(cttreep->fname);
+    free(cttreep->name);
+    free(cttreep->email);
+    free(cttreep->tel);
+    free(cttreep->addr);
+    free(cttreep);
+}
+
+void
+rec_destroy(Cttree cttreep)
+{
+    if (cttreep==NULL){
+	return;
+    }
+    rec_destroy(cttreep->left);
+    rec_destroy(cttreep->right);
+    printf("destroying cttreep->name:%s\n",cttreep->name);
+    freeall(cttreep);
+}
+
+void
+destroy(Vcf vcfp)
+{
+    if (vcfp== NULL){
+	return;
+    }
+    Cttree cttreep =vcfp->tree;
+    rec_destroy(cttreep);
+    /* destroy(cttreep->left); */
+    /* destroy(cttreep->right); */
+    /* freeall(cttreep); */
+}
 
 
 Cttree insert (Cttree  cttreep, Cttree newctp)
 {
     int cmp;
+    assert(newctp);
+    printf ("INSERT!\n");
     if (cttreep == NULL){
+	printf ("newp->depth: %d\n",newctp->depth);
+	printf ("NULL\n");
+	newctp->left =NULL;
+	newctp->right = NULL;
 	return newctp;
     }
+    printf ("cttreep->name: %s - cttreep->depth: %d\n",cttreep->name,cttreep->depth);
+    printf ("newp->name: %s - newp->depth: %d\n",newctp->name,newctp->depth);
     assert(cttreep);
     assert(cttreep->name);
+    printf ("strlen(cttreep->name): %lu\n", strlen(cttreep->name));
+    printf("rname: %s  \n",cttreep->name);
+    printf("nname: %s  \n",newctp->name);
     cmp = strcmp(newctp->name, cttreep->name);
+    printf("cmp: %d\n",cmp);
     if (cmp == 0 ) {
-	fprintf(stderr,"inset: duplicate entry %s ignored ",newctp->name);
+	fprintf(stderr,"insert: duplicate entry %s ignored ",newctp->name);
     } else if (cmp < 0) {
+	printf("left\n");
+	newctp->depth+=1;
 	cttreep->left=insert (cttreep->left,newctp);
     } else {
+	printf("right\n");
+	newctp->depth+=1;
 	cttreep->right= insert(cttreep->right, newctp);
     }
+
     return cttreep;
 }
 
@@ -105,9 +189,6 @@ Cttree lookup (Cttree  cttreep, char *name, int search)
 	return NULL;
     }
     cmp = strcmp(name, cttreep->name);
-    /* int hamdist=hamstring(name,cttreep->name); */
-    /* char * treefound=strstr(name,cttreep->name); */
-    /* char * namefound=strstr(cttreep->name,name); */
     if (cmp == 0){
 	return cttreep;
     } else if( cmp < 0){
@@ -117,110 +198,15 @@ Cttree lookup (Cttree  cttreep, char *name, int search)
     }
 }
 
-/* int hamstring(char * newname, char * treename) */
-/* { */
-/*     int newlen,treelen,counter,i,hamd; */
-/*     hamd=0; */
-/*     newlen=strlen(newname); */
-/*     treelen=strlen(treename); */
-/*     /\* set counter to smallest len*\/ */
-/*     counter=newlen > treelen ? treelen : newlen; */
-/*     for (i = 0 ; i < counter+1; i++){ */
-/* 	hamd+=hamming_distance(newname[i],treename[i]); */
-/*     } */
-/*     /\* add the distance between string lengths to overall hammind distance *\/ */
-/*     hamd+= (newlen - treelen)>=0? (newlen - treelen): (treelen - newlen); */
-/*     return hamd; */
-/* } */
-/* /\* binary string hamming distance https://en.wikipedia.org/wiki/Hamming_distance *\/ */
-/* int hamming_distance(unsigned x, unsigned y) */
-/* { */
-/*     int dist = 0; */
-/*     unsigned  val = x ^ y; */
-
-/*     // Count the number of bits set */
-/*     while (val != 0) */
-/*     { */
-/*         // A bit is set, so increment the count and clear the bit */
-/*         dist++; */
-/*         val &= val - 1; */
-/*     } */
-
-/*     // Return the number of differing bits */
-/*     return dist; */
-/* } */
-
-int minimum(int i, int j, int k)
-{
-    int min = (i < j)? i : j;
-    min = (min < k) ? min: k;
-    return min;
-}
-/*
-  https://en.wikipedia.org/wiki/Levenshtein_distance
- */
-/* int levenshtein_distance(const char *s, int len_s, const char*t, int len_t) */
-/* { */
-/*     int cost; */
-/*     /\*base case*\/ */
-/*     if (len_s == 0) return len_t; */
-/*     if (len_t == 0) return len_s; */
-
-/*     if (s[len_s-1] == t[len_t-1]){ */
-/* 	cost = 0; */
-/*     } else { */
-/* 	cost = 1; */
-/*     } */
-
-/*     /\* recursion *\/ */
-/*     return minimum(levenshtein_distance(s, len_s-1, t, len_t) +1, */
-/* 		   levenshtein_distance(s, len_s, t, len_t -1) +1, */
-/* 		   levenshtein_distance(s, len_s-1, t, len_t-1) +cost); */
-
-/* } */
-
-/*
-  https://en.wikipedia.org/wiki/Bitap_algorithm
-*/
-/* const char * bitap_bitwise_search(const char *text, const char *pattern) */
-/* { */
-/*     int m = strlen(pattern); */
-/*     unsigned long R; */
-/*     unsigned long pattern_mask[CHAR_MAX+1]; */
-/*     int i; */
-/*     if (pattern[0] == '\0') return text; */
-/*     if (m > 31){ */
-/* 	printf ("PATTERN IS TOO LONG\n"); */
-/* 	return NULL; */
-/*     } */
-
-/*     R = ~1; */
-
-/*     for (i =0; i <= CHAR_MAX; ++i){ */
-/* 	pattern_mask[i] = ~0; */
-/*     } */
-
-/*     for (i = 0; i < m; ++i){ */
-/* 	pattern_mask[pattern[i]] &= ~(1UL << i); */
-/*     } */
-
-/*     for (i = 0; text[i] != '\0'; ++i){ */
-/* 	R |= pattern_mask[text[i]]; */
-/* 	R <<=1; */
-
-/* 	if (0 == (R & (1UL << m))){ */
-/* 	    return (text +i -m ) +1; */
-/* 	} */
-/*     } */
-/*     return NULL; */
-/* } */
 
 void applyinorder(Cttree cttreep,
 		  void(*fn)(Cttree , void *), void *arg)
 {
+
     if (cttreep == NULL){
 	return;
     }
+    printf("cttreep->name:%s\n", cttreep->name);
     applyinorder(cttreep->left, fn, arg);
     (*fn)(cttreep, arg);
     applyinorder(cttreep->right,fn,arg);
@@ -239,18 +225,26 @@ Cttree  filterinorder(Cttree cttreep, Cttree newtree,
     if (cttreep == NULL){
 	return cttreep;
     }
-    Cttree  temp;
+    assert(cttreep);
+    Cttree  temp = NULL;
+
     if ((temp=filterinorder(cttreep->left, newtree,fn, arg))){
-	/* printf ("added left to newtree\n"); */
+	printf ("added left to newtree\n");
 	newtree = temp;
     }
 
     if ((*fn)(cttreep, arg)){
-	/* printf ("\nADDED NEW CONTACT TO FOUND LIST:%s\n",cttreep->name); */
-	newtree=insert(newtree,newitem(xstrdup(cttreep->name),
-			       xstrdup(cttreep->fname),
-			       xstrdup(cttreep->email),
-			       xstrdup(cttreep->tel)));
+	printf ("\nADDED NEW CONTACT TO FOUND LIST:%s\n",cttreep->name);
+	Cttree newp = (Cttree )xmalloc(sizeof(Cttree));
+	newp->name=xstrdup(cttreep->name);
+	newp->fname=xstrdup(cttreep->fname);
+	newp->email=xstrdup(cttreep->email);
+	newp->tel = xstrdup(cttreep->tel);
+	newp->left=NULL;
+	newp->right=NULL;
+	assert(newp->name == cttreep->name);
+ 	newtree=insert(newtree,newp);
+	newp=NULL;
     }
 
     if ((temp = filterinorder(cttreep->right,newtree,fn,arg) )){
@@ -290,98 +284,111 @@ int fullsearchtree(Cttree p, void *arg)
     return res;
 }
 
-Cttree newitem(char *name, char *fname, char* email, char * tel)
+Cttree newitem(const char *name, const char *fname,
+	       const char* email, const char * tel)
 {
     Cttree newp;
     newp = (Cttree )xmalloc(sizeof(Cttree));
-    newp->name=name;
-    newp->fname=fname;
-    newp->email=email;
-    newp->tel = tel;
-    /* printf ("new name: %s\n",name); */
-    /* printf(" new fname: %s\n",fname); */
+    newp->name=xstrdup(name);
+    newp->fname=xstrdup(fname);
+    newp->email=xstrdup(email);
+    newp->tel = xstrdup(tel);
     newp->left=NULL;
     newp->right=NULL;
     assert(newp);
+    printf("name: %s -- newp->name:%s \n",name,newp->name);
+    assert(strlen(name) == strlen(newp->name));
+    assert(strlen(fname) == strlen(newp->name));
     return newp;
 }
 
-Cttree  vcfgetcontacts(FILE *f, int * count)
+Cttree newemptyitem()
 {
-    char **cont=NULL;
-    int maxline = 1;
+    Cttree newp;
+    newp = (Cttree )xmalloc(sizeof(Cttree));
+    newp->depth=0;
+    newp->left=NULL;
+    newp->right=NULL;
+    newp->name="";
+    newp->fname="";
+    newp->email="";
+    newp->tel="";
+    newp->addr="";
+    assert(newp);
+    assert(newp->depth ==0);
+    return newp;
+}
+
+
+Cttree  vcfgetcontacts(Vcf vcfp, FILE *f, int * count)
+{
     char buf[500];
     assert(f);
-    Cttree  cttree = NULL;
-    char **newct;
+    Cttree  cttreep = vcfp->tree;
     int ncon,state,nline,found;
-    if ((cont = (char**) malloc(maxline * sizeof(char*))) ==NULL){
-	warnx("MALLOC FAILED- %s",strerror(errno) );
-	return cttree;
-    }
     nline= ncon = state = found =  0;
-    int fnline ,nameline,telline,emailline;
-    fnline = nameline=telline = emailline = 0;
+    Cttree newp2;
+    char *line;
     while (fgets (buf, sizeof(buf), f)!=NULL) {
+	/* printf ("strlen(buf): %lu\n",strlen(buf)); */
 	/* remove the \n added by fgets */
 	buf[strlen(buf)-1]='\0';
-	if (nline >= maxline-1){
-	    maxline *=2;
-	    printf ("maxline: %d", maxline);
-	    if ((newct = (char**) realloc(cont, maxline* sizeof(char*)))
-		== NULL){
-		warnx("MALLOC FAILED- %s",strerror(errno) );
-		return cttree;
-	    }
-	    cont = newct;
-	}
+	line=NULL;
+	assert(buf);
 	if (strncmp(buf,"BEGIN:VCARD",10) == 0){
 	    state=1;
+	    /* memory for the next contact */
+	    printf("creating newp2 \n");
+	    newp2 =newemptyitem();//(Cttree )xmalloc(sizeof(Cttree));
+	    assert(newp2);
+	    printf("BEGIN : newp2->depth: %d\n", newp2->depth);
 	    /*printf ("buf: '%s'\n", buf); */
 	} else if(strncmp(buf,"END:VCARD",8)!=0 && state ==1){
 	    /* contact line handling  */
-	    if ((cont[nline]=xstrdup(strip(buf,"FN:", &found))) && found){
-		fnline=nline;
+	    if ((line = xstrdup(strip(buf,"FN:", &found))) && found){
+		    newp2->fname = line;
+		    printf("FN : newp2->depth: %d\n", newp2->depth);
 		/* printf ("fnline:%d\n  - fn:%s\n",fnline,cont[fnline]); */
-	    } else if((cont[nline]=xstrdup(strip(buf,
-						"N:", &found))) && found){
-		nameline=nline;
-	    }else if((cont[nline]=xstrdup(strip(buf,
-					       "EMAIL", &found))) && found){
-		emailline=nline;
-	    }else if((cont[nline]=xstrdup(strip(buf,
-					       "TEL;", &found))) && found){
-		telline=nline;
+	    } else if((line = xstrdup(strip(buf,"N:", &found))) && found){
+		printf("buf:%s\n", buf);
+		printf("N : newp2->depth: %d\n", newp2->depth);
+		newp2->name = line ;
+	    }else if((line = xstrdup(strip(buf,"EMAIL", &found))) && found){
+		newp2->email = line;
+	    }else if((line=xstrdup(strip(buf,"TEL;", &found))) && found){
+		newp2->tel = line;
 	    }else {
-		cont[nline] = xstrdup(buf);
-		/* printf("unparsed line : %s\n",buf); */
+		continue;
 	    }
-	    //printf ("fnline:%d  - fn:'%s'",fnline,cont[fnline]);
-	    //printf ("found: %d\n",found);
-	    //printf("line: %d - %s\n", nline, cont[nline]);
 	    nline++;
+	    printf ("nline:%d\n",nline);
 	}else if (strncmp(buf,"END:VCARD",8)==0) {
-	    if (cont[fnline]){
-		printf("attempting insert: %s\n",cont[fnline]);
-		cttree= insert(cttree,newitem(xstrdup(cont[nameline]),
-					      xstrdup(cont[fnline]),
-					      xstrdup(cont[emailline]),
-					      xstrdup(cont[telline])));
-	    }
-	    int i=0;
-	    for (i = 0; i < nline; i++){
-		cont[i]="";
+	    if (newp2){
+		/* create an item to be inserted into tree */
+		/* Cttree next = newitem(cont[nameline], */
+		/* 		      cont[fnline], */
+		/* 		      cont[emailline], */
+		/* 		      cont[telline]); */
+
+		printf("newp2->name: %s - newp2->depth: %d \n",
+		       newp2->name,newp2->depth  );
+		cttreep= insert(cttreep,newp2);
+		newp2=NULL;
+
 	    }
 	    state = 0;
 	    nline=0;
 	    ncon++;
-	    /* printf("\n********************\n"); */
+	    printf("\n********************\n");
 	}
     }
     printf ("ncon: %d\n", ncon);
     *count=ncon;
-    //p = xstrdup(buf);
-    return cttree;
+    /* show the current tree */
+    applyinorder(cttreep,printcttree,
+    		 "CTS\n>fname:%s\n name:%s \n email:%s\n tel:%s\n\n");
+
+    return cttreep;
 }
 
 
