@@ -29,7 +29,7 @@ void vwarnx(const char *fmt, va_list args);
 #include <assert.h>
 #include <limits.h>
 #include <err.h>
-
+#include <strings.h>
 #include <errno.h>
 #include "vcard.h"
 //#include "eprintf.h"
@@ -90,23 +90,37 @@ freeall(Cttree cttreep){
     if (cttreep == NULL){
 	return;
     }
+    printf("free fname\n");
     free(cttreep->fname);
+    printf("free name\n");
     free(cttreep->name);
-    free(cttreep->email);
+    printf("free tel\n");
     free(cttreep->tel);
-    free(cttreep->addr);
+    if (cttreep->addr){
+	printf("free addr\n");
+	free(cttreep->addr);
+    }
+    if (cttreep->email){
+	printf("free email\n");
+	free(cttreep->email);
+    }
+    printf("free cttreep\n");
     free(cttreep);
 }
 
 void
 rec_destroy(Cttree cttreep)
 {
+
     if (cttreep==NULL){
 	return;
     }
+    printf("destroying cttreep->name:%s\n",cttreep->name);
+    /* printf("destroying cttreep->left->name:%s\n",cttreep->left->name); */
+    /* printf("destroying cttreep->right->name:%s\n",cttreep->right->name); */
     rec_destroy(cttreep->left);
     rec_destroy(cttreep->right);
-    printf("destroying cttreep->name:%s\n",cttreep->name);
+
     freeall(cttreep);
 }
 
@@ -309,11 +323,11 @@ Cttree newemptyitem()
     newp->depth=0;
     newp->left=NULL;
     newp->right=NULL;
-    newp->name="";
-    newp->fname="";
-    newp->email="";
-    newp->tel="";
-    newp->addr="";
+    newp->name="EMPTY";
+    newp->fname="EMPTY";
+    newp->email="EMPTY";
+    newp->tel="EMPTY";
+    newp->addr="EMPTY";
     assert(newp);
     assert(newp->depth ==0);
     return newp;
@@ -346,8 +360,8 @@ Cttree  vcfgetcontacts(Vcf vcfp, FILE *f, int * count)
 	} else if(strncmp(buf,"END:VCARD",8)!=0 && state ==1){
 	    /* contact line handling  */
 	    if ((line = xstrdup(strip(buf,"FN:", &found))) && found){
-		    newp2->fname = line;
-		    printf("FN : newp2->depth: %d\n", newp2->depth);
+		newp2->fname = line;
+		printf("FN : newp2->depth: %d\n", newp2->depth);
 		/* printf ("fnline:%d\n  - fn:%s\n",fnline,cont[fnline]); */
 	    } else if((line = xstrdup(strip(buf,"N:", &found))) && found){
 		printf("buf:%s\n", buf);
@@ -405,21 +419,29 @@ Cttree  vcfgetcontacts(Vcf vcfp, FILE *f, int * count)
 char * strip(char* tag, char * prefix, int *found)
 {
     int i;
+    char *new;
     if (strncmp(tag,prefix,strlen(prefix)) == 0){
 	//tag=strchr(tag,':');
-	for(i=strlen(tag) ; i >=0 && !isalpha(tag[i]); i-- ){
-	    /* if (tag[i] == ';' && tag[i+1] != ';'){ */
-	    /* 	tag[i] = '-'; */
+	new = rindex(tag,':');
+	new++;
+	if (new){
+	    printf("new string? : %s\n", new);
+	    tag = new;
+	} else {
+	    for(i=strlen(tag) ; i >=0 && !isalpha(tag[i]); i-- ){
+		/* if (tag[i] == ';' && tag[i+1] != ';'){ */
+		/* 	tag[i] = '-'; */
 
-	    /* } else if (tag[i] == ';'){ */
-	    /* 	/\* remove the semicolons delimiting some words*\/ */
-	    /* 	memmove(tag+i, tag+i+1, strlen(tag+i+1)); /\**\/ */
-	    /* } */
-	    if (tag[i] == ';'){
-		memmove(tag+i, tag+i+1,strlen(tag+i)+1);
+		/* } else if (tag[i] == ';'){ */
+		/* 	/\* remove the semicolons delimiting some words*\/ */
+		/* 	memmove(tag+i, tag+i+1, strlen(tag+i+1)); /\**\/ */
+		/* } */
+		if (tag[i] == ';'){
+		    memmove(tag+i, tag+i+1,strlen(tag+i)+1);
+		}
 	    }
+	    tag +=strlen(prefix);
 	}
-	tag +=strlen(prefix);
 	*found = 1;
     }else {
 	*found =0;
