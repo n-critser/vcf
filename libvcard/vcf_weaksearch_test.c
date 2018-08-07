@@ -49,21 +49,23 @@ int main(int argc, char ** argv)
 	printf ("ncontacts : '%d'\n", nc);
     }
     /* fclose(file); */
-    destroy(v);
+
     assert(v->tree);
-    applyinorder(v->tree,printcttree,
-    		 "CTS\n>fname:%s\n name:%s \n email:%s\n tel:%s\n\n");
+    /* applyinorder(v->tree,printcttree, */
+    /* 		 "CTS\n>fname:%s\n name:%s \n email:%s\n tel:%s\n\n"); */
 
 
     /* assert(cts); */
 
     /* /\* test weaksearch *\/ */
-    /* Cttree found; */
+    /* Vcf  f = construct(); */
+    /* /\* Cttree found; *\/ */
     /* int nfnd=0; */
     /* char * sstr=target; */
     /* /\* printf ("searching for : %s\n", sstr); *\/ */
-    /* found = weaksearch(cts, sstr, &nfnd); */
-    /* applyinorder(found,printcttree, */
+    /* f->tree = weaksearch(v->tree, sstr, &nfnd); */
+    /* applyinorder(f->tree,printcttree, */
     /* 		 ">weaksearch fname:%s\n name:%s \n email:%s\n tel:%s"); */
+    destroy(v);
     return 0;
 }

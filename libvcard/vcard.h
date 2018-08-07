@@ -22,7 +22,8 @@ void applyinorder(Cttree cttreep,
 
 void printcttree(Cttree p, void *arg);
 Cttree newitem(const char *name, const char *fname,
-	       const char* email, const char * tel);
+	       const char* email, const char * tel,
+	       const char *addr);
 Cttree vcfgetcontacts(Vcf vcfp,FILE *f, int * count);
 int   vcfgetncontact(int n);
 char * strip(char* tag, char * prefix, int * found);

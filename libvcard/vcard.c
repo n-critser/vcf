@@ -48,13 +48,14 @@ int fullsearchtree(Cttree p, void *arg);
 
 struct cttree{
     int depth;
-    Cttree left;
-    Cttree right;
     char *name;
     char *fname;
     char *tel;
     char *email;
     char *addr;
+    Cttree left;
+    Cttree right;
+
 };
 
 
@@ -90,21 +91,27 @@ freeall(Cttree cttreep){
     if (cttreep == NULL){
 	return;
     }
-    printf("free fname\n");
+    /* printf("free fname\n"); */
+    assert(cttreep->fname);
     free(cttreep->fname);
-    printf("free name\n");
+    /* printf("free name\n"); */
+    assert(cttreep->name);
     free(cttreep->name);
-    printf("free tel\n");
+    /* printf("free tel\n"); */
+    assert(cttreep->tel);
     free(cttreep->tel);
     if (cttreep->addr){
-	printf("free addr\n");
+	/* printf("free addr\n"); */
+	assert(cttreep->addr);
 	free(cttreep->addr);
     }
     if (cttreep->email){
-	printf("free email\n");
+	/* printf("free email\n"); */
+	assert(cttreep->email);
 	free(cttreep->email);
     }
-    printf("free cttreep\n");
+    /* printf("free cttreep\n"); */
+    assert(cttreep);
     free(cttreep);
 }
 
@@ -115,12 +122,10 @@ rec_destroy(Cttree cttreep)
     if (cttreep==NULL){
 	return;
     }
-    printf("destroying cttreep->name:%s\n",cttreep->name);
-    /* printf("destroying cttreep->left->name:%s\n",cttreep->left->name); */
-    /* printf("destroying cttreep->right->name:%s\n",cttreep->right->name); */
+
     rec_destroy(cttreep->left);
     rec_destroy(cttreep->right);
-
+    /* printf("destroying cttreep->name:%s\n",cttreep->name); */
     freeall(cttreep);
 }
 
@@ -142,35 +147,25 @@ Cttree insert (Cttree  cttreep, Cttree newctp)
 {
     int cmp;
     assert(newctp);
-    printf ("INSERT!\n");
+    /* printf ("INSERT!\n"); */
     if (cttreep == NULL){
-	printf ("newp->depth: %d\n",newctp->depth);
-	printf ("NULL\n");
+	/* printf ("newp->depth: %d\n",newctp->depth); */
 	newctp->left =NULL;
 	newctp->right = NULL;
 	return newctp;
     }
-    printf ("cttreep->name: %s - cttreep->depth: %d\n",cttreep->name,cttreep->depth);
-    printf ("newp->name: %s - newp->depth: %d\n",newctp->name,newctp->depth);
     assert(cttreep);
     assert(cttreep->name);
-    printf ("strlen(cttreep->name): %lu\n", strlen(cttreep->name));
-    printf("rname: %s  \n",cttreep->name);
-    printf("nname: %s  \n",newctp->name);
     cmp = strcmp(newctp->name, cttreep->name);
-    printf("cmp: %d\n",cmp);
     if (cmp == 0 ) {
 	fprintf(stderr,"insert: duplicate entry %s ignored ",newctp->name);
     } else if (cmp < 0) {
-	printf("left\n");
 	newctp->depth+=1;
 	cttreep->left=insert (cttreep->left,newctp);
     } else {
-	printf("right\n");
 	newctp->depth+=1;
 	cttreep->right= insert(cttreep->right, newctp);
     }
-
     return cttreep;
 }
 
@@ -185,7 +180,7 @@ Cttree weaksearch(Cttree  cttreep, char*name, int *nct)
     Cttree temp = NULL;
     /* first loopup for a tree match*/
     if ((temp = lookup(cttreep, name, 1)) != NULL){
-	sres = newitem(name,temp->fname,temp->email,temp->tel);
+	sres = newitem(name,temp->fname,temp->email,temp->tel,temp->addr);
 	(*nct)++;
     }
 
@@ -220,7 +215,6 @@ void applyinorder(Cttree cttreep,
     if (cttreep == NULL){
 	return;
     }
-    printf("cttreep->name:%s\n", cttreep->name);
     applyinorder(cttreep->left, fn, arg);
     (*fn)(cttreep, arg);
     applyinorder(cttreep->right,fn,arg);
@@ -243,20 +237,19 @@ Cttree  filterinorder(Cttree cttreep, Cttree newtree,
     Cttree  temp = NULL;
 
     if ((temp=filterinorder(cttreep->left, newtree,fn, arg))){
-	printf ("added left to newtree\n");
+	/* printf ("added left to newtree\n"); */
 	newtree = temp;
     }
 
     if ((*fn)(cttreep, arg)){
 	printf ("\nADDED NEW CONTACT TO FOUND LIST:%s\n",cttreep->name);
-	Cttree newp = (Cttree )xmalloc(sizeof(Cttree));
-	newp->name=xstrdup(cttreep->name);
-	newp->fname=xstrdup(cttreep->fname);
-	newp->email=xstrdup(cttreep->email);
-	newp->tel = xstrdup(cttreep->tel);
-	newp->left=NULL;
-	newp->right=NULL;
-	assert(newp->name == cttreep->name);
+	Cttree newp = newitem(cttreep->name,
+			      cttreep->fname,
+			      cttreep->email,
+			      cttreep->tel,
+			      cttreep->addr
+			      );
+	assert(strcmp(newp->name, cttreep->name) == 0);
  	newtree=insert(newtree,newp);
 	newp=NULL;
     }
@@ -299,35 +292,36 @@ int fullsearchtree(Cttree p, void *arg)
 }
 
 Cttree newitem(const char *name, const char *fname,
-	       const char* email, const char * tel)
+	       const char* email, const char * tel, const char *addr)
 {
     Cttree newp;
-    newp = (Cttree )xmalloc(sizeof(Cttree));
+    newp = (Cttree )xmalloc(sizeof(struct cttree));
     newp->name=xstrdup(name);
     newp->fname=xstrdup(fname);
     newp->email=xstrdup(email);
     newp->tel = xstrdup(tel);
+    newp->addr=xstrdup(addr);
     newp->left=NULL;
     newp->right=NULL;
+    newp->depth = 0;
     assert(newp);
-    printf("name: %s -- newp->name:%s \n",name,newp->name);
     assert(strlen(name) == strlen(newp->name));
-    assert(strlen(fname) == strlen(newp->name));
+    assert(strlen(fname) == strlen(newp->fname));
     return newp;
 }
 
 Cttree newemptyitem()
 {
     Cttree newp;
-    newp = (Cttree )xmalloc(sizeof(Cttree));
+    newp = (Cttree )xmalloc(sizeof(struct cttree));
     newp->depth=0;
     newp->left=NULL;
     newp->right=NULL;
-    newp->name="EMPTY";
-    newp->fname="EMPTY";
-    newp->email="EMPTY";
-    newp->tel="EMPTY";
-    newp->addr="EMPTY";
+    newp->name=NULL;
+    newp->fname=NULL;
+    newp->email=NULL;
+    newp->tel=NULL;
+    newp->addr=NULL;
     assert(newp);
     assert(newp->depth ==0);
     return newp;
@@ -352,20 +346,18 @@ Cttree  vcfgetcontacts(Vcf vcfp, FILE *f, int * count)
 	if (strncmp(buf,"BEGIN:VCARD",10) == 0){
 	    state=1;
 	    /* memory for the next contact */
-	    printf("creating newp2 \n");
+	    /* printf("creating newp2 \n"); */
 	    newp2 =newemptyitem();//(Cttree )xmalloc(sizeof(Cttree));
 	    assert(newp2);
-	    printf("BEGIN : newp2->depth: %d\n", newp2->depth);
-	    /*printf ("buf: '%s'\n", buf); */
 	} else if(strncmp(buf,"END:VCARD",8)!=0 && state ==1){
 	    /* contact line handling  */
 	    if ((line = xstrdup(strip(buf,"FN:", &found))) && found){
 		newp2->fname = line;
-		printf("FN : newp2->depth: %d\n", newp2->depth);
-		/* printf ("fnline:%d\n  - fn:%s\n",fnline,cont[fnline]); */
+		/* printf("FN : newp2->depth: %d\n", newp2->depth); */
+
 	    } else if((line = xstrdup(strip(buf,"N:", &found))) && found){
-		printf("buf:%s\n", buf);
-		printf("N : newp2->depth: %d\n", newp2->depth);
+		/* printf("buf:%s\n", buf); */
+		/* printf("N : newp2->depth: %d\n", newp2->depth); */
 		newp2->name = line ;
 	    }else if((line = xstrdup(strip(buf,"EMAIL", &found))) && found){
 		newp2->email = line;
@@ -375,7 +367,6 @@ Cttree  vcfgetcontacts(Vcf vcfp, FILE *f, int * count)
 		continue;
 	    }
 	    nline++;
-	    printf ("nline:%d\n",nline);
 	}else if (strncmp(buf,"END:VCARD",8)==0) {
 	    if (newp2){
 		/* create an item to be inserted into tree */
@@ -384,8 +375,12 @@ Cttree  vcfgetcontacts(Vcf vcfp, FILE *f, int * count)
 		/* 		      cont[emailline], */
 		/* 		      cont[telline]); */
 
-		printf("newp2->name: %s - newp2->depth: %d \n",
-		       newp2->name,newp2->depth  );
+		/* printf("newp2->name: %s - newp2->depth: %d \n", */
+		/*        newp2->name,newp2->depth  ); */
+		/* newp2->addr=xstrdup("EMPTY"); */
+		/* printf("newp2: %p\n", newp2); */
+		/* printf("newp2->addr: %p\n", newp2->addr); */
+		/* printf ("newp2->addr: %s\n", newp2->addr); */
 		cttreep= insert(cttreep,newp2);
 		newp2=NULL;
 
@@ -393,15 +388,15 @@ Cttree  vcfgetcontacts(Vcf vcfp, FILE *f, int * count)
 	    state = 0;
 	    nline=0;
 	    ncon++;
-	    printf("\n********************\n");
+	    /* printf("\n********************\n"); */
 	}
     }
-    printf ("ncon: %d\n", ncon);
+
     *count=ncon;
     /* show the current tree */
-    applyinorder(cttreep,printcttree,
-    		 "CTS\n>fname:%s\n name:%s \n email:%s\n tel:%s\n\n");
-
+    /* applyinorder(cttreep,printcttree, */
+    /* 		 "CTS\n>fname:%s\n name:%s \n email:%s\n tel:%s\n\n"); */
+    /* printf ("ncon: %d\n", ncon); */
     return cttreep;
 }
 
@@ -425,7 +420,7 @@ char * strip(char* tag, char * prefix, int *found)
 	new = rindex(tag,':');
 	new++;
 	if (new){
-	    printf("new string? : %s\n", new);
+	    /* printf("new string? : %s\n", new); */
 	    tag = new;
 	} else {
 	    for(i=strlen(tag) ; i >=0 && !isalpha(tag[i]); i-- ){
