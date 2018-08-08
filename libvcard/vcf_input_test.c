@@ -2,6 +2,7 @@
 #include "vcard.h"
 #include <string.h>
 #include <err.h>
+#include <assert.h>
 int main(int argc, char ** argv)
 {
 
@@ -38,19 +39,26 @@ int main(int argc, char ** argv)
 
 
     int nc=0;
-    Cttree cts=NULL;
+    Vcf  v = construct();
+
     /* should have at least a llist or tree as a result of
        vcfgetcontacts so user can access the list for contact info
      */
     /* printf ("about to get contacts\n"); */
-    if ((cts = vcfgetcontacts(file,&nc)) != NULL){
+    if ((v->tree = vcfgetcontacts(v,file,&nc)) != NULL){
 	printf ("ncontacts : '%d'\n", nc);
     }
     fclose(file);
-    /* applyinorder(cts,printcttree, */
-    /* 		 "CTS\n>fname:%s\n name:%s \n email:%s\n tel:%s\n\n"); */
 
-    Cttree found;
+    assert(v->tree);
+        applyinorder(v->tree,printcttree,
+    		 "CTS\n>fname:%s\n name:%s \n email:%s\n tel:%s\n\n");
+
+
+
+    /* /\* test weaksearch *\/ */
+    Vcf  f = construct();
+    /* Cttree found; */
     int nfnd=0;
     char sstr[80];//target;//"Eieland;A";
     int x;
@@ -61,10 +69,12 @@ int main(int argc, char ** argv)
 	errx(1,"%s","NO SEARCH TERM GIVEN!");
 	exit(1); /* does this get executed? */
     }
-    found = weaksearch(cts, sstr, &nfnd);
-    applyinorder(found,printcttree,
-		 ">CONTACT:\nfname:%s\n name:%s \n email:%s\n tel:%s\n");
-
+    /* printf ("searching for : %s\n", sstr); */
+    f->tree = weaksearch(v->tree, sstr, &nfnd);
+    applyinorder(f->tree,printcttree,
+    		 ">weaksearch fname:%s\n name:%s \n email:%s\n tel:%s");
+    destroy(v);
+    destroy(f);
     /* while ((x= scanf("%24[^\n]s",sstr))==0){ */
     /* 	printf("SEARCH TERM: %s", sstr); */
     /* 	/\* printf ("searching for : %s\n", sstr); *\/ */
@@ -76,5 +86,5 @@ int main(int argc, char ** argv)
     /* 	applyinorder(found,printcttree, */
     /* 		     ">weaksearch fname:%s\n name:%s \n email:%s\n tel:%s"); */
     /* } */
-    return nfnd;
+    return 0;
 }

@@ -48,24 +48,24 @@ int main(int argc, char ** argv)
     if ((v->tree = vcfgetcontacts(v,file,&nc)) != NULL){
 	printf ("ncontacts : '%d'\n", nc);
     }
-    /* fclose(file); */
+    fclose(file);
 
     assert(v->tree);
-    /* applyinorder(v->tree,printcttree, */
-    /* 		 "CTS\n>fname:%s\n name:%s \n email:%s\n tel:%s\n\n"); */
+    applyinorder(v->tree,printcttree,
+    		 "CTS\n>fname:%s\n name:%s \n email:%s\n tel:%s\n\n");
 
 
     /* assert(cts); */
 
     /* /\* test weaksearch *\/ */
-    /* Vcf  f = construct(); */
-    /* /\* Cttree found; *\/ */
-    /* int nfnd=0; */
-    /* char * sstr=target; */
-    /* /\* printf ("searching for : %s\n", sstr); *\/ */
-    /* f->tree = weaksearch(v->tree, sstr, &nfnd); */
-    /* applyinorder(f->tree,printcttree, */
-    /* 		 ">weaksearch fname:%s\n name:%s \n email:%s\n tel:%s"); */
+    Vcf  f = construct();
+    /* Cttree found; */
+    int nfnd=0;
+    char * sstr=target;
+    /* printf ("searching for : %s\n", sstr); */
+    f->tree = weaksearch(v->tree, sstr, &nfnd);
+    applyinorder(f->tree,printcttree,
+    		 ">weaksearch fname:%s\n name:%s \n email:%s\n tel:%s");
     destroy(v);
     return 0;
 }

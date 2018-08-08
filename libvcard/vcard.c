@@ -98,8 +98,10 @@ freeall(Cttree cttreep){
     assert(cttreep->name);
     free(cttreep->name);
     /* printf("free tel\n"); */
-    assert(cttreep->tel);
-    free(cttreep->tel);
+    if (cttreep->tel){
+	assert(cttreep->tel);
+	free(cttreep->tel);
+    }
     if (cttreep->addr){
 	/* printf("free addr\n"); */
 	assert(cttreep->addr);
@@ -156,6 +158,11 @@ Cttree insert (Cttree  cttreep, Cttree newctp)
     }
     assert(cttreep);
     assert(cttreep->name);
+
+    if (!newctp->name){
+	newctp->name=xstrdup(newctp->fname);
+    }
+    assert(newctp->name);
     cmp = strcmp(newctp->name, cttreep->name);
     if (cmp == 0 ) {
 	fprintf(stderr,"insert: duplicate entry %s ignored ",newctp->name);
@@ -291,16 +298,32 @@ int fullsearchtree(Cttree p, void *arg)
     return res;
 }
 
+
+enum {
+    NFIELDS = 5
+};
+const char * fields[NFIELDS] ={
+    "name",
+    "fname",
+    "email",
+    "tel",
+    "addr"
+};
+
 Cttree newitem(const char *name, const char *fname,
 	       const char* email, const char * tel, const char *addr)
 {
     Cttree newp;
     newp = (Cttree )xmalloc(sizeof(struct cttree));
-    newp->name=xstrdup(name);
-    newp->fname=xstrdup(fname);
-    newp->email=xstrdup(email);
-    newp->tel = xstrdup(tel);
-    newp->addr=xstrdup(addr);
+    /* int i; */
+    /* for (i = 0; i < NFIELDS; i++){ */
+    /* 	newp->fields[i] = xstrdup(fields[i]); */
+    /* } */
+    newp->name=name ? xstrdup(name): NULL ;
+    newp->fname=fname ? xstrdup(fname): NULL ;
+    newp->email=email ? xstrdup(email) : NULL ;
+    newp->tel = tel ? xstrdup(tel) : NULL ;
+    newp->addr=addr ? xstrdup(addr) : NULL ;
     newp->left=NULL;
     newp->right=NULL;
     newp->depth = 0;
@@ -360,27 +383,58 @@ Cttree  vcfgetcontacts(Vcf vcfp, FILE *f, int * count)
 		/* printf("N : newp2->depth: %d\n", newp2->depth); */
 		newp2->name = line ;
 	    }else if((line = xstrdup(strip(buf,"EMAIL", &found))) && found){
-		newp2->email = line;
+		/* concatenation code taken from the
+		   below stackoverflow answers
+		   https://stackoverflow.com/questions/8465006/
+		   how-do-i-concatenate-two-strings-in-c
+		 */
+		/* concatenate if we already have one*/
+		if (newp2->email){
+		    const size_t len1 = strlen(newp2->email);
+		    const size_t len2 = strlen(line);
+		    char *result = xmalloc(len1 + len2 + 1); // +1 for the null-terminator
+		    // in real code you would check for errors in malloc here
+		    memcpy(result, newp2->email, len1);
+		    memcpy(result+(len1), "\n", 1);
+		    memcpy(result + (len1+1), line, len2 + 1); // +1 to copy the null-terminator
+		    free(line);
+		    free(newp2->email);
+		    newp2->email=result;
+		}else {
+		    newp2->email = line;
+		}
 	    }else if((line=xstrdup(strip(buf,"TEL;", &found))) && found){
-		newp2->tel = line;
+		if (newp2->tel){
+		    const size_t len1 = strlen(newp2->tel);
+		    const size_t len2 = strlen(line);
+		    char *result = xmalloc(len1 + len2 + 1); // +1 for the null-terminator
+		    // in real code you would check for errors in malloc here
+		    memcpy(result, newp2->tel, len1);
+		    memcpy(result+(len1), "\n", 1);
+		    memcpy(result + (len1+1), line, len2 + 1); // +1 to copy the null-terminator
+		    free(line);
+		    free(newp2->tel);
+		    newp2->tel=result;
+
+		}else {
+		    newp2->tel = line;
+		}
 	    }else {
 		continue;
 	    }
 	    nline++;
 	}else if (strncmp(buf,"END:VCARD",8)==0) {
-	    if (newp2){
-		/* create an item to be inserted into tree */
-		/* Cttree next = newitem(cont[nameline], */
-		/* 		      cont[fnline], */
-		/* 		      cont[emailline], */
-		/* 		      cont[telline]); */
 
-		/* printf("newp2->name: %s - newp2->depth: %d \n", */
-		/*        newp2->name,newp2->depth  ); */
-		/* newp2->addr=xstrdup("EMPTY"); */
-		/* printf("newp2: %p\n", newp2); */
-		/* printf("newp2->addr: %p\n", newp2->addr); */
-		/* printf ("newp2->addr: %s\n", newp2->addr); */
+	    if (newp2){
+		char  tmpnm[1024];
+		int res= sprintf(tmpnm,"%d", ncon );
+		/* printf ("tmpnm : %s\n", tmpnm); */
+		if (!newp2->fname ){
+		    newp2->fname= xstrdup(tmpnm);
+		}
+		if (!newp2->name ){
+		    newp2->name= xstrdup(tmpnm);
+		}
 		cttreep= insert(cttreep,newp2);
 		newp2=NULL;
 
